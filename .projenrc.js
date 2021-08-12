@@ -39,6 +39,8 @@ const project = new AwsCdkConstructLibrary({
   cdkDependencies: [
     '@aws-cdk/core',
     '@aws-cdk/aws-sns',
+    '@aws-cdk/aws-sns-subscriptions',
+    '@aws-cdk/aws-ssm',
     '@aws-cdk/aws-secretsmanager',
   ],
 

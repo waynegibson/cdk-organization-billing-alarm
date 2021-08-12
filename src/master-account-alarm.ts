@@ -1,53 +1,31 @@
 import { Construct } from '@aws-cdk/core';
 import { BillingAlarm, BillingAlarmProps } from '@spacecomx/cdk-billing-alarm';
-import { importSecretFromName } from './helper';
+import { getTopicArnToken } from './helpers';
+import { IAlarmDefination, AlarmParams, ITopicArnDefination, TopicArnParams } from './shared';
 
-declare type AlarmParams = {
+export declare type TopicParams = {
   topicDescription?: string;
-  alarmDescription: string;
-  thresholdAmount: number;
   emailAddress: string[];
-  awsService?: string;
 };
 
-export interface AlarmConfig {
+export interface ITopicDefination extends ITopicArnDefination {
   /**
-  * Description for the topic. A developer-defined string that can be used to identify this topic.
-  */
-  readonly topicDescription?: string;
-  /**
-  * Description for the alarm. A developer-defined string that can be used to identify this alarm.
-  */
-  readonly alarmDescription: string;
-  /**
-   * Enter the threshold amount in USD that must be exceeded to trigger the alarm e.g. (limit: 150).
+   * Description for the topic. A developer-defined string that can be used to identify this topic.
    */
-  readonly thresholdAmount: number;
+  readonly topicDescription?: string;
   /**
    * The email address that will be used to subcribe to the SNS topic for billing alert notifications e.g. ['hello@example.org'] or [''hello@example.org', 'admin@example.org'].
    *
    * @default - Not configured
    */
   readonly emailAddress: string[];
-  /**
-  * The AWS Service to associate the alarm with e.g (AmazonDynamoDB)
-  *
-  * @default - Not configured.
-  */
-  readonly awsService?: string;
 }
 
 export interface MasterAccountAlarmProps {
-  /**
-  * Alarm configuration options to configure the AWS master/payer account billing alarm, with SNS topic or an existing Topic Arn.
-  */
-  readonly alarmConfiguration: AlarmConfig;
-  /**
-   * Imports a secret by secret name e.g 'prod/billing/topicArn'
-   *
-   * A secret with this name must exist in the same account & region as the master/payer AWS account.
-   */
-  readonly secretName?: string;
+  /** Topic configuration options to configure the SNS topic and email address's that will be used to subscribe to the topic. */
+  readonly topicConfiguration: ITopicDefination;
+  /** Alarm configuration options to configure the billing alarm e.g. (name, description etc.). */
+  readonly alarmConfiguration: IAlarmDefination;
 }
 
 /**
@@ -67,34 +45,35 @@ export class MasterAccountAlarm extends Construct {
   constructor(scope: Construct, id: string, props: MasterAccountAlarmProps) {
     super(scope, id);
 
-    let topicArn: string = '';
+    const topicArnParams: TopicArnParams = props.topicConfiguration;
+    const topicParams: TopicParams = props.topicConfiguration;
+    const alarmParams: AlarmParams = props.alarmConfiguration;
 
-    if (props.secretName) {
-      topicArn = importSecretFromName(this, props.secretName);
-    }
+    // if no existing topic arn is provided, a new topic will be created.
+    const existingTopicArn: string = getTopicArnToken(this, topicArnParams);
 
-    this.createBillingAlarm(topicArn, props.alarmConfiguration);
+    this.createBillingAlarm(existingTopicArn, topicParams, alarmParams);
   }
 
   /**
-   * Create billing alarm.
+   * Create a new billing alarm.
    *
-   * @param topicArn string
-   * @param AlarmParams
+   * @param topicArn string | undefined
+   * @param param1 TopicParams
+   * @param param2 AlarmParams
+   * @return void
    */
   private createBillingAlarm(
-    topicArn: string,
-    { topicDescription, emailAddress, alarmDescription, thresholdAmount, awsService }: AlarmParams): void {
+    topicArn: string | undefined,
+    { topicDescription, emailAddress }: TopicParams,
+    { alarmName, alarmDescription, thresholdAmount, awsService }: AlarmParams): void {
 
-    let dimension = {};
-
-    if (awsService) {
-      dimension = {
+    const metricDimension = (typeof awsService !== 'undefined' && awsService) ?
+      {
         metricDimensions: {
           service: awsService,
         },
-      };
-    }
+      } : {};
 
     const config: BillingAlarmProps = {
       topicConfiguration: {
@@ -103,12 +82,13 @@ export class MasterAccountAlarm extends Construct {
         emailAddress: emailAddress,
       },
       alarmConfiguration: {
+        alarmName: alarmName,
         alarmDescription: alarmDescription,
         thresholdAmount: thresholdAmount,
       },
-      ...dimension,
+      ...metricDimension,
     };
 
-    new BillingAlarm(this, 'BillingAlarm', config);
+    new BillingAlarm(this, 'AccountBillingAlarm', config);
   }
 }

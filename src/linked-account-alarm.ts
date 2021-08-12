@@ -1,122 +1,99 @@
 import { Construct } from '@aws-cdk/core';
 import { BillingAlarm, BillingAlarmProps } from '@spacecomx/cdk-billing-alarm';
-import { importSecretFromName } from './helper';
+import { getTopicArnToken, removeAccountDuplicates, makeHash } from './helpers';
+import { IAlarmDefination, AlarmParams, ITopicArnDefination, TopicArnParams } from './shared';
 
-declare type AlarmParams = {
+declare type AccountParams = {
   account: string;
-  alarmName?: string;
-  alarmDescription: string;
-  thresholdAmount: number;
-  emailAddress: string[];
-  awsService?: string;
-};
+} & AlarmParams;
 
-export interface LinkedAccountConfig {
+export interface IAccountDefination extends IAlarmDefination {
   /**
    * Account id which this metric comes from.
    */
   readonly account: string;
-  /**
-   * Name of the alarm.
-   *
-   * If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the alarm name (recommended).
-   *
-   * @default Generated name
-   */
-  readonly alarmName?: string;
-  /**
-  * Description for the alarm. A developer-defined string that can be used to identify this alarm.
-  */
-  readonly alarmDescription: string;
-  /**
-   * Enter the threshold amount in USD that must be exceeded to trigger the alarm e.g. (limit: 150).
-   */
-  readonly thresholdAmount: number;
-  /**
-   * The email address that will be used to subcribe to the SNS topic for billing alert notifications e.g. ['hello@example.org'] or [''hello@example.org', 'admin@example.org'].
-   *
-   * @default - Not configured
-   */
-  readonly emailAddress?: string[];
-  /**
-  * The AWS Service to associate the alarm with e.g (AmazonDynamoDB)
-  *
-  * @default - Not configured.
-  */
-  readonly awsService?: string;
 }
 
 export interface LinkedAccountAlarmProps {
-  /**
-   * Imports a secret by secret name e.g 'prod/billing/topicArn'
-   *
-   * A secret with this name must exist in the same account & region as the master/payer AWS account.
-   */
-  readonly secretName: string;
-  /**
-   * Account configuration to configure linked account billing alarms with an exsiting SNS topic.
-   */
-  readonly accountConfiguration: LinkedAccountConfig[];
+  /** Topic configuration options to configure the SNS topic and email address's that will be used to subscribe to the topic. */
+  readonly topicConfiguration: ITopicArnDefination;
+  /** Account configuration options to configure the billing alarm e.g. (name, description etc.). */
+  readonly accounts: IAccountDefination[];
 }
 
 /**
- * A construct to create a linked account billing alarm within a master/payer AWS account e.g (AWS Organization).
+ * A construct to create multiple linked account billing alarms associated with an existing SNS topic Arn within a master/payer AWS account e.g (AWS Organization).
  *
  * @example
  *
  * new LinkedAccountAlarm(stack, 'LinkedAccountAlarm', {
- *  secretName: 'test/billing/topicArn'
- *  accountConfiguration: [
- *    { account: '444455556666', alarmDescription: 'Consolidated billing alarm for all AWS service charge estimates (Account: 444455556666)', thresholdAmount: 50, emailAddress: ['john@example.org'] },
- *    { account: '123456789000', alarmDescription: 'Billing Alarm for AWS DynamoDB charge estimates only (Account: 123456789000)', thresholdAmount: 120, awsService: 'AmazonDynamoDB' },
+ *  topicConfiguration {
+ *    secretName: 'test/billing/topicArn',
+ *  },
+ *  accounts: [
+ *    { account: '444455556666', alarmName: 'Consolidated: (All AWS Services)', alarmDescription: 'Consolidated billing for all AWS service charge estimates (Account: 444455556666)', thresholdAmount: 50 },
+ *    { account: '123456789000', alarmDescription: 'Billing Alarm for AWS DynamoDB charge estimates (Account: 123456789000)', thresholdAmount: 120, awsService: 'AmazonDynamoDB' },
  *  ],
+ * }
  */
 export class LinkedAccountAlarm extends Construct {
   constructor(scope: Construct, id: string, props: LinkedAccountAlarmProps) {
     super(scope, id);
 
-    const { secretName, accountConfiguration: accounts } = props;
-    const topicArn: string = importSecretFromName(this, secretName);
+    const topicArnParams: TopicArnParams = props.topicConfiguration;
+    const existingTopicArn: string = getTopicArnToken(this, topicArnParams);
 
-    accounts.forEach((account: any): void => {
-      this.createBillingAlarm(topicArn, account);
+    if (!existingTopicArn) {
+      throw new Error('Invalid ssm parameter or secret name: Either must exist in the same account & region as the master/payer AWS account.');
+    }
+
+    const accounts = removeAccountDuplicates(props.accounts);
+
+    accounts.forEach((account: any, index: number): void => {
+      this.createBillingAlarm(existingTopicArn, account, index);
     });
   }
 
   /**
-   * Create billing alarm.
+   * Create new billing alarm.
    *
    * @param topicArn string
-   * @param query AlarmParams
+   * @param param AlarmParams
+   * @return void
    */
   private createBillingAlarm(
     topicArn: string,
-    { account, alarmName, alarmDescription, thresholdAmount, emailAddress, awsService }: AlarmParams): void {
+    { account, alarmName, alarmDescription, thresholdAmount, awsService }: AccountParams, index: number): void {
 
-    let serviceDimension: object = {};
+    const identifier = (`${account}${index}`).toString();
 
-    if (awsService) {
-      serviceDimension = {
-        service: awsService,
+    const hash = makeHash(identifier);
+
+    const metricDimension = (typeof awsService !== 'undefined' && awsService) ?
+      {
+        metricDimensions: {
+          account: account,
+          service: awsService,
+        },
+      } : {
+        metricDimensions: {
+          account: account,
+        },
       };
-    }
 
     const config: BillingAlarmProps = {
       topicConfiguration: {
         existingTopicArn: topicArn,
-        emailAddress: emailAddress,
+        emailAddress: [],
       },
       alarmConfiguration: {
         alarmName: alarmName,
         alarmDescription: alarmDescription,
         thresholdAmount: thresholdAmount,
       },
-      metricDimensions: {
-        account: account,
-        ...serviceDimension,
-      },
+      ...metricDimension,
     };
 
-    new BillingAlarm(this, `BillingAlarm-${account}`, config);
+    new BillingAlarm(this, `${hash}`, config);
   }
 }

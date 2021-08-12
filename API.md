@@ -2,9 +2,41 @@
 
 ## Constructs <a name="Constructs"></a>
 
+### EmailSubscription <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscription"></a>
+
+#### Initializer <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscription.Initializer"></a>
+
+```typescript
+import { EmailSubscription } from '@spacecomx/cdk-organization-billing-alarm'
+
+new EmailSubscription(scope: Construct, id: string, props: EmailSubscriptionProps)
+```
+
+##### `scope`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscription.parameter.scope"></a>
+
+- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+
+---
+
+##### `id`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscription.parameter.id"></a>
+
+- *Type:* `string`
+
+---
+
+##### `props`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscription.parameter.props"></a>
+
+- *Type:* [`@spacecomx/cdk-organization-billing-alarm.EmailSubscriptionProps`](#@spacecomx/cdk-organization-billing-alarm.EmailSubscriptionProps)
+
+---
+
+
+
+
+
 ### LinkedAccountAlarm <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountAlarm"></a>
 
-A construct to create a linked account billing alarm within a master/payer AWS account e.g (AWS Organization).
+A construct to create multiple linked account billing alarms associated with an existing SNS topic Arn within a master/payer AWS account e.g (AWS Organization).
 
 #### Initializer <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountAlarm.Initializer"></a>
 
@@ -72,59 +104,21 @@ new MasterAccountAlarm(scope: Construct, id: string, props: MasterAccountAlarmPr
 
 ## Structs <a name="Structs"></a>
 
-### AlarmConfig <a name="@spacecomx/cdk-organization-billing-alarm.AlarmConfig"></a>
+### EmailSubscriptionProps <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscriptionProps"></a>
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
 ```typescript
-import { AlarmConfig } from '@spacecomx/cdk-organization-billing-alarm'
+import { EmailSubscriptionProps } from '@spacecomx/cdk-organization-billing-alarm'
 
-const alarmConfig: AlarmConfig = { ... }
+const emailSubscriptionProps: EmailSubscriptionProps = { ... }
 ```
 
-##### `alarmDescription`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.AlarmConfig.property.alarmDescription"></a>
+##### `topicConfiguration`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.EmailSubscriptionProps.property.topicConfiguration"></a>
 
-- *Type:* `string`
+- *Type:* [`@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription`](#@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription)
 
-Description for the alarm.
-
-A developer-defined string that can be used to identify this alarm.
-
----
-
-##### `emailAddress`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.AlarmConfig.property.emailAddress"></a>
-
-- *Type:* `string`[]
-- *Default:* Not configured
-
-The email address that will be used to subcribe to the SNS topic for billing alert notifications e.g. ['hello@example.org'] or [''hello@example.org', 'admin@example.org'].
-
----
-
-##### `thresholdAmount`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.AlarmConfig.property.thresholdAmount"></a>
-
-- *Type:* `number`
-
-Enter the threshold amount in USD that must be exceeded to trigger the alarm e.g. (limit: 150).
-
----
-
-##### `awsService`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.AlarmConfig.property.awsService"></a>
-
-- *Type:* `string`
-- *Default:* Not configured.
-
-The AWS Service to associate the alarm with e.g (AmazonDynamoDB).
-
----
-
-##### `topicDescription`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.AlarmConfig.property.topicDescription"></a>
-
-- *Type:* `string`
-
-Description for the topic.
-
-A developer-defined string that can be used to identify this topic.
+Topic configuration options to configure the email address's that will be used to subscribe to the existing topic.
 
 ---
 
@@ -138,86 +132,19 @@ import { LinkedAccountAlarmProps } from '@spacecomx/cdk-organization-billing-ala
 const linkedAccountAlarmProps: LinkedAccountAlarmProps = { ... }
 ```
 
-##### `accountConfiguration`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountAlarmProps.property.accountConfiguration"></a>
+##### `accounts`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountAlarmProps.property.accounts"></a>
 
-- *Type:* [`@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig`](#@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig)[]
+- *Type:* [`@spacecomx/cdk-organization-billing-alarm.IAccountDefination`](#@spacecomx/cdk-organization-billing-alarm.IAccountDefination)[]
 
-Account configuration to configure linked account billing alarms with an exsiting SNS topic.
-
----
-
-##### `secretName`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountAlarmProps.property.secretName"></a>
-
-- *Type:* `string`
-
-Imports a secret by secret name e.g 'prod/billing/topicArn'.
-
-A secret with this name must exist in the same account & region as the master/payer AWS account.
+Account configuration options to configure the billing alarm e.g. (name, description etc.).
 
 ---
 
-### LinkedAccountConfig <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig"></a>
+##### `topicConfiguration`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountAlarmProps.property.topicConfiguration"></a>
 
-#### Initializer <a name="[object Object].Initializer"></a>
+- *Type:* [`@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination)
 
-```typescript
-import { LinkedAccountConfig } from '@spacecomx/cdk-organization-billing-alarm'
-
-const linkedAccountConfig: LinkedAccountConfig = { ... }
-```
-
-##### `account`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig.property.account"></a>
-
-- *Type:* `string`
-
-Account id which this metric comes from.
-
----
-
-##### `alarmDescription`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig.property.alarmDescription"></a>
-
-- *Type:* `string`
-
-Description for the alarm.
-
-A developer-defined string that can be used to identify this alarm.
-
----
-
-##### `thresholdAmount`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig.property.thresholdAmount"></a>
-
-- *Type:* `number`
-
-Enter the threshold amount in USD that must be exceeded to trigger the alarm e.g. (limit: 150).
-
----
-
-##### `alarmName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig.property.alarmName"></a>
-
-- *Type:* `string`
-- *Default:* Generated name
-
-Name of the alarm.
-
-If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the alarm name (recommended).
-
----
-
-##### `awsService`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig.property.awsService"></a>
-
-- *Type:* `string`
-- *Default:* Not configured.
-
-The AWS Service to associate the alarm with e.g (AmazonDynamoDB).
-
----
-
-##### `emailAddress`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.LinkedAccountConfig.property.emailAddress"></a>
-
-- *Type:* `string`[]
-- *Default:* Not configured
-
-The email address that will be used to subcribe to the SNS topic for billing alert notifications e.g. ['hello@example.org'] or [''hello@example.org', 'admin@example.org'].
+Topic configuration options to configure the SNS topic and email address's that will be used to subscribe to the topic.
 
 ---
 
@@ -233,15 +160,154 @@ const masterAccountAlarmProps: MasterAccountAlarmProps = { ... }
 
 ##### `alarmConfiguration`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.MasterAccountAlarmProps.property.alarmConfiguration"></a>
 
-- *Type:* [`@spacecomx/cdk-organization-billing-alarm.AlarmConfig`](#@spacecomx/cdk-organization-billing-alarm.AlarmConfig)
+- *Type:* [`@spacecomx/cdk-organization-billing-alarm.IAlarmDefination`](#@spacecomx/cdk-organization-billing-alarm.IAlarmDefination)
 
-Alarm configuration options to configure the AWS master/payer account billing alarm, with SNS topic or an existing Topic Arn.
+Alarm configuration options to configure the billing alarm e.g. (name, description etc.).
 
 ---
 
-##### `secretName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.MasterAccountAlarmProps.property.secretName"></a>
+##### `topicConfiguration`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.MasterAccountAlarmProps.property.topicConfiguration"></a>
+
+- *Type:* [`@spacecomx/cdk-organization-billing-alarm.ITopicDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicDefination)
+
+Topic configuration options to configure the SNS topic and email address's that will be used to subscribe to the topic.
+
+---
+
+
+## Protocols <a name="Protocols"></a>
+
+### IAccountDefination <a name="@spacecomx/cdk-organization-billing-alarm.IAccountDefination"></a>
+
+- *Extends:* [`@spacecomx/cdk-organization-billing-alarm.IAlarmDefination`](#@spacecomx/cdk-organization-billing-alarm.IAlarmDefination)
+
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.IAccountDefination`](#@spacecomx/cdk-organization-billing-alarm.IAccountDefination)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `alarmDescription`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAccountDefination.property.alarmDescription"></a>
 
 - *Type:* `string`
+
+Description for the alarm.
+
+A developer-defined string that can be used to identify this alarm.
+
+---
+
+##### `thresholdAmount`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAccountDefination.property.thresholdAmount"></a>
+
+- *Type:* `number`
+
+Enter the threshold amount in USD that must be exceeded to trigger the alarm e.g. (limit: 150).
+
+---
+
+##### `alarmName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAccountDefination.property.alarmName"></a>
+
+- *Type:* `string`
+- *Default:* Generated name
+
+Name of the alarm.
+
+If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the alarm name (recommended).
+
+---
+
+##### `awsService`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAccountDefination.property.awsService"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+The AWS Service to associate the alarm with e.g (AmazonDynamoDB).
+
+---
+
+##### `account`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAccountDefination.property.account"></a>
+
+- *Type:* `string`
+
+Account id which this metric comes from.
+
+---
+
+### IAlarmDefination <a name="@spacecomx/cdk-organization-billing-alarm.IAlarmDefination"></a>
+
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.IAccountDefination`](#@spacecomx/cdk-organization-billing-alarm.IAccountDefination), [`@spacecomx/cdk-organization-billing-alarm.IAlarmDefination`](#@spacecomx/cdk-organization-billing-alarm.IAlarmDefination)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `alarmDescription`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAlarmDefination.property.alarmDescription"></a>
+
+- *Type:* `string`
+
+Description for the alarm.
+
+A developer-defined string that can be used to identify this alarm.
+
+---
+
+##### `thresholdAmount`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAlarmDefination.property.thresholdAmount"></a>
+
+- *Type:* `number`
+
+Enter the threshold amount in USD that must be exceeded to trigger the alarm e.g. (limit: 150).
+
+---
+
+##### `alarmName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAlarmDefination.property.alarmName"></a>
+
+- *Type:* `string`
+- *Default:* Generated name
+
+Name of the alarm.
+
+If you don't specify a name, AWS CloudFormation generates a unique physical ID and uses that ID for the alarm name (recommended).
+
+---
+
+##### `awsService`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.IAlarmDefination.property.awsService"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+The AWS Service to associate the alarm with e.g (AmazonDynamoDB).
+
+---
+
+### ITopicArnDefination <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination"></a>
+
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination), [`@spacecomx/cdk-organization-billing-alarm.ITopicDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicDefination), [`@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription`](#@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `parameterName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination.property.parameterName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+The name of the SSM parameter e.g '/prod/billing/topicArn'.
+
+Returns a token that will resolve (during deployment) to the string value of an SSM string parameter.
+
+---
+
+##### `parameterVersion`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination.property.parameterVersion"></a>
+
+- *Type:* `number`
+- *Default:* Not configured.
+
+The SSM parameter version (recommended in order to ensure that the value won't change during deployment).
+
+---
+
+##### `secretName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination.property.secretName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
 
 Imports a secret by secret name e.g 'prod/billing/topicArn'.
 
@@ -249,5 +315,156 @@ A secret with this name must exist in the same account & region as the master/pa
 
 ---
 
+### ITopicArnParameter <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnParameter"></a>
 
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.ITopicArnParameter`](#@spacecomx/cdk-organization-billing-alarm.ITopicArnParameter)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `parameterName`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnParameter.property.parameterName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+The name of the SSM parameter e.g '/prod/billing/topicArn'.
+
+Returns a token that will resolve (during deployment) to the string value of an SSM string parameter.
+
+---
+
+##### `parameterVersion`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnParameter.property.parameterVersion"></a>
+
+- *Type:* `number`
+- *Default:* Not configured.
+
+The SSM parameter version (recommended in order to ensure that the value won't change during deployment).
+
+---
+
+### ITopicArnSecret <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnSecret"></a>
+
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.ITopicArnSecret`](#@spacecomx/cdk-organization-billing-alarm.ITopicArnSecret)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `secretName`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicArnSecret.property.secretName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+Imports a secret by secret name e.g 'prod/billing/topicArn'.
+
+A secret with this name must exist in the same account & region as the master/payer AWS account.
+
+---
+
+### ITopicDefination <a name="@spacecomx/cdk-organization-billing-alarm.ITopicDefination"></a>
+
+- *Extends:* [`@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination)
+
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.ITopicDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicDefination)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `parameterName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicDefination.property.parameterName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+The name of the SSM parameter e.g '/prod/billing/topicArn'.
+
+Returns a token that will resolve (during deployment) to the string value of an SSM string parameter.
+
+---
+
+##### `parameterVersion`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicDefination.property.parameterVersion"></a>
+
+- *Type:* `number`
+- *Default:* Not configured.
+
+The SSM parameter version (recommended in order to ensure that the value won't change during deployment).
+
+---
+
+##### `secretName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicDefination.property.secretName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+Imports a secret by secret name e.g 'prod/billing/topicArn'.
+
+A secret with this name must exist in the same account & region as the master/payer AWS account.
+
+---
+
+##### `emailAddress`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicDefination.property.emailAddress"></a>
+
+- *Type:* `string`[]
+- *Default:* Not configured
+
+The email address that will be used to subcribe to the SNS topic for billing alert notifications e.g. ['hello@example.org'] or [''hello@example.org', 'admin@example.org'].
+
+---
+
+##### `topicDescription`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicDefination.property.topicDescription"></a>
+
+- *Type:* `string`
+
+Description for the topic.
+
+A developer-defined string that can be used to identify this topic.
+
+---
+
+### ITopicEmailSubscription <a name="@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription"></a>
+
+- *Extends:* [`@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination`](#@spacecomx/cdk-organization-billing-alarm.ITopicArnDefination)
+
+- *Implemented By:* [`@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription`](#@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `parameterName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription.property.parameterName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+The name of the SSM parameter e.g '/prod/billing/topicArn'.
+
+Returns a token that will resolve (during deployment) to the string value of an SSM string parameter.
+
+---
+
+##### `parameterVersion`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription.property.parameterVersion"></a>
+
+- *Type:* `number`
+- *Default:* Not configured.
+
+The SSM parameter version (recommended in order to ensure that the value won't change during deployment).
+
+---
+
+##### `secretName`<sup>Optional</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription.property.secretName"></a>
+
+- *Type:* `string`
+- *Default:* Not configured.
+
+Imports a secret by secret name e.g 'prod/billing/topicArn'.
+
+A secret with this name must exist in the same account & region as the master/payer AWS account.
+
+---
+
+##### `emailAddress`<sup>Required</sup> <a name="@spacecomx/cdk-organization-billing-alarm.ITopicEmailSubscription.property.emailAddress"></a>
+
+- *Type:* `string`[]
+- *Default:* Not configured
+
+The email address's that will be used to subcribe to the existing SNS topic for billing alert notifications e.g. ['hello@example.org'] or [''hello@example.org', 'admin@example.org'].
+
+---
 

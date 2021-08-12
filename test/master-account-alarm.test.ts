@@ -2,76 +2,24 @@ import { countResources, expect as expectCDK, haveResourceLike } from '@aws-cdk/
 import * as cdk from '@aws-cdk/core';
 import { MasterAccountAlarm, MasterAccountAlarmProps } from '../src';
 
-test('ensure resources exist to create a master account alarm with new sns topic', () => {
+test('ensure resources exist to create a single master alarm associated with a aws service attached a new sns topic', () => {
   const app = new cdk.App();
   const stack = new cdk.Stack(app, 'TestStack');
 
   const config: MasterAccountAlarmProps = {
-    alarmConfiguration: {
+    topicConfiguration: {
       topicDescription: 'Organizational billing alarm topic',
-      emailAddress: ['john@example.org'],
-      alarmDescription: 'Consolidated billing alarm for all AWS Service charges',
-      thresholdAmount: 140,
+      emailAddress: ['admin@example.org'],
     },
-  };
-
-  new MasterAccountAlarm(stack, 'MasterBillingAlarm', config);
-
-  expectCDK(stack).to(countResources('AWS::SNS::Topic', 1));
-  expectCDK(stack).to(
-    haveResourceLike('AWS::SNS::Topic', {
-      DisplayName: 'Organizational billing alarm topic',
-    }),
-  );
-
-  expectCDK(stack).to(countResources('AWS::SNS::Subscription', 1));
-  expectCDK(stack).to(
-    haveResourceLike('AWS::SNS::Subscription', {
-      TopicArn: { Ref: 'MasterBillingAlarmTopic11ACFFE5' },
-      Endpoint: 'john@example.org',
-      Protocol: 'email',
-    }),
-  );
-
-  expectCDK(stack).to(countResources('AWS::CloudWatch::Alarm', 1));
-  expectCDK(stack).to(
-    haveResourceLike('AWS::CloudWatch::Alarm', {
-      AlarmActions: [
-        { Ref: 'MasterBillingAlarmTopic11ACFFE5' },
-      ],
-      AlarmDescription: 'Consolidated billing alarm for all AWS Service charges',
-      ComparisonOperator: 'GreaterThanOrEqualToThreshold',
-      EvaluationPeriods: 1,
-      MetricName: 'EstimatedCharges',
-      Namespace: 'AWS/Billing',
-      Period: 21600,
-      Statistic: 'Maximum',
-      Threshold: 140,
-      Dimensions: [
-        {
-          Name: 'Currency',
-          Value: 'USD',
-        },
-      ],
-    }),
-  );
-});
-
-test('ensure resources exist to create a master account alarm with specific aws service', () => {
-  const app = new cdk.App();
-  const stack = new cdk.Stack(app, 'TestStack');
-
-  const config: MasterAccountAlarmProps = {
     alarmConfiguration: {
-      topicDescription: 'Organizational billing alarm topic',
-      emailAddress: ['john@example.org'],
-      alarmDescription: 'Billing Alarm for AWS DynamoDB charge estimates only (Account: 12345444000)',
+      alarmName: 'Consolidated: (All Services)',
+      alarmDescription: 'Consolidated billing alarm for all service charges',
       thresholdAmount: 140,
       awsService: 'AmazonDynamoDB',
     },
   };
 
-  new MasterAccountAlarm(stack, 'MasterBillingAlarm', config);
+  new MasterAccountAlarm(stack, 'MasterAccountAlarm', config);
 
   expectCDK(stack).to(countResources('AWS::SNS::Topic', 1));
   expectCDK(stack).to(countResources('AWS::SNS::Subscription', 1));
@@ -79,17 +27,9 @@ test('ensure resources exist to create a master account alarm with specific aws 
   expectCDK(stack).to(countResources('AWS::CloudWatch::Alarm', 1));
   expectCDK(stack).to(
     haveResourceLike('AWS::CloudWatch::Alarm', {
-      AlarmActions: [
-        { Ref: 'MasterBillingAlarmTopic11ACFFE5' },
-      ],
-      AlarmDescription: 'Billing Alarm for AWS DynamoDB charge estimates only (Account: 12345444000)',
+      AlarmDescription: 'Consolidated billing alarm for all service charges',
+      AlarmName: 'Consolidated: (All Services)',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
-      EvaluationPeriods: 1,
-      MetricName: 'EstimatedCharges',
-      Namespace: 'AWS/Billing',
-      Period: 21600,
-      Statistic: 'Maximum',
-      Threshold: 140,
       Dimensions: [
         {
           Name: 'Currency',
@@ -100,112 +40,53 @@ test('ensure resources exist to create a master account alarm with specific aws 
           Value: 'AmazonDynamoDB',
         },
       ],
-    }),
-  );
-});
-
-test('ensure resources exist to create a master account alarm using existing sns topic', () => {
-  const app = new cdk.App();
-  const stack = new cdk.Stack(app, 'TestStack');
-
-  const config: MasterAccountAlarmProps = {
-    secretName: 'test/billing/topicArn',
-    alarmConfiguration: {
-      emailAddress: ['john@example.org'],
-      alarmDescription: 'Consolidated organisation AWS Services',
-      thresholdAmount: 140,
-    },
-  };
-
-  new MasterAccountAlarm(stack, 'MasterBillingAlarm', config);
-
-  expectCDK(stack).to(countResources('AWS::SNS::Topic', 0));
-
-  expectCDK(stack).to(countResources('AWS::SNS::Subscription', 1));
-  expectCDK(stack).to(
-    haveResourceLike('AWS::SNS::Subscription', {
-      Endpoint: 'john@example.org',
-      Protocol: 'email',
-    }),
-  );
-
-  expectCDK(stack).to(countResources('AWS::CloudWatch::Alarm', 1));
-  expectCDK(stack).to(
-    haveResourceLike('AWS::CloudWatch::Alarm', {
-      AlarmActions: [
-        {
-          'Fn::Join': ['', ['{{resolve:secretsmanager:arn:',
-            {
-              Ref: 'AWS::Partition',
-            },
-            ':secretsmanager:',
-            {
-              Ref: 'AWS::Region',
-            },
-            ':',
-            {
-              Ref: 'AWS::AccountId',
-            },
-            ':secret:test/billing/topicArn:SecretString:::}}']],
-        },
-      ],
-    }),
-  );
-});
-
-
-test('ensure resources exist to create a master account alarm using existing sns topic without email subscription', () => {
-  const app = new cdk.App();
-  const stack = new cdk.Stack(app, 'TestStack');
-
-  const config: MasterAccountAlarmProps = {
-    secretName: 'test/billing/topicArn',
-    alarmConfiguration: {
-      emailAddress: [],
-      alarmDescription: 'Consolidated billing alarm for all AWS Service charges',
-      thresholdAmount: 140,
-    },
-  };
-
-  new MasterAccountAlarm(stack, 'MasterBillingAlarm', config);
-
-  expectCDK(stack).to(countResources('AWS::SNS::Topic', 0));
-  expectCDK(stack).to(countResources('AWS::SNS::Subscription', 0));
-
-  expectCDK(stack).to(countResources('AWS::CloudWatch::Alarm', 1));
-  expectCDK(stack).to(
-    haveResourceLike('AWS::CloudWatch::Alarm', {
-      AlarmActions: [
-        {
-          'Fn::Join': ['', ['{{resolve:secretsmanager:arn:',
-            {
-              Ref: 'AWS::Partition',
-            },
-            ':secretsmanager:',
-            {
-              Ref: 'AWS::Region',
-            },
-            ':',
-            {
-              Ref: 'AWS::AccountId',
-            },
-            ':secret:test/billing/topicArn:SecretString:::}}']],
-        },
-      ],
-      AlarmDescription: 'Consolidated billing alarm for all AWS Service charges',
-      ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 1,
       MetricName: 'EstimatedCharges',
       Namespace: 'AWS/Billing',
       Period: 21600,
       Statistic: 'Maximum',
       Threshold: 140,
+    }),
+  );
+});
+
+test('ensure resources exist to create a single master alarm associated without a aws service attached a new sns topic', () => {
+  const app = new cdk.App();
+  const stack = new cdk.Stack(app, 'TestStack');
+
+  const config: MasterAccountAlarmProps = {
+    topicConfiguration: {
+      topicDescription: 'Organizational billing alarm topic',
+      emailAddress: ['admin@example.org'],
+    },
+    alarmConfiguration: {
+      alarmDescription: 'Consolidated billing alarm for all service charges',
+      thresholdAmount: 140,
+    },
+  };
+
+  new MasterAccountAlarm(stack, 'MasterAccountAlarm', config);
+
+  expectCDK(stack).to(countResources('AWS::SNS::Topic', 1));
+  expectCDK(stack).to(countResources('AWS::SNS::Subscription', 1));
+
+  expectCDK(stack).to(countResources('AWS::CloudWatch::Alarm', 1));
+  expectCDK(stack).to(
+    haveResourceLike('AWS::CloudWatch::Alarm', {
+      AlarmDescription: 'Consolidated billing alarm for all service charges',
+      ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       Dimensions: [
         {
           Name: 'Currency',
           Value: 'USD',
         },
       ],
+      EvaluationPeriods: 1,
+      MetricName: 'EstimatedCharges',
+      Namespace: 'AWS/Billing',
+      Period: 21600,
+      Statistic: 'Maximum',
+      Threshold: 140,
     }),
   );
 });
