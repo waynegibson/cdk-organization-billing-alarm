@@ -42,6 +42,8 @@ const project = new AwsCdkConstructLibrary({
     '@aws-cdk/aws-sns-subscriptions',
     '@aws-cdk/aws-ssm',
     '@aws-cdk/aws-secretsmanager',
+    '@aws-cdk/custom-resources',
+    '@aws-cdk/aws-iam',
   ],
 
   deps: ['@spacecomx/cdk-billing-alarm'],

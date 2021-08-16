@@ -90,6 +90,11 @@
       "type": "build"
     },
     {
+      "name": "@aws-cdk/aws-iam",
+      "version": "^1.118.0",
+      "type": "peer"
+    },
+    {
       "name": "@aws-cdk/aws-secretsmanager",
       "version": "^1.118.0",
       "type": "peer"
@@ -111,6 +116,11 @@
     },
     {
       "name": "@aws-cdk/core",
+      "version": "^1.118.0",
+      "type": "peer"
+    },
+    {
+      "name": "@aws-cdk/custom-resources",
       "version": "^1.118.0",
       "type": "peer"
     },
@@ -124,6 +134,11 @@
       "type": "peer"
     },
     {
+      "name": "@aws-cdk/aws-iam",
+      "version": "^1.118.0",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-cdk/aws-secretsmanager",
       "version": "^1.118.0",
       "type": "runtime"
@@ -145,6 +160,11 @@
     },
     {
       "name": "@aws-cdk/core",
+      "version": "^1.118.0",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-cdk/custom-resources",
       "version": "^1.118.0",
       "type": "runtime"
     },

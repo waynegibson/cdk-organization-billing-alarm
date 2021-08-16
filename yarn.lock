@@ -210,7 +210,7 @@
     "@aws-cdk/core" "1.118.0"
     constructs "^3.3.69"
 
-"@aws-cdk/aws-iam@1.118.0":
+"@aws-cdk/aws-iam@1.118.0", "@aws-cdk/aws-iam@^1.118.0":
   version "1.118.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-iam/-/aws-iam-1.118.0.tgz#ae2064bd4bcc97b498130238178a11be8fb9fd4e"
   integrity sha512-1AhnGWclYnZmuO/A5EY37atd/xYssC0EB/wzxQz/nwsSoKIKguTmNoK7ZWY/b2UJyqWFSSQII7DCVDT3P583jQ==
@@ -425,7 +425,7 @@
     ignore "^5.1.8"
     minimatch "^3.0.4"
 
-"@aws-cdk/custom-resources@1.118.0":
+"@aws-cdk/custom-resources@1.118.0", "@aws-cdk/custom-resources@^1.118.0":
   version "1.118.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/custom-resources/-/custom-resources-1.118.0.tgz#34b6def4f11f6ca36e0a2e4c7d4de6828f5d806f"
   integrity sha512-0IHQjarO51++d/V/9nBxo3AV+wCeUmL669RPMwScSm92vymtBoNa3SZ/YbAGqOnWkdzpeZsAD+zWU8ShcMxl/g==
